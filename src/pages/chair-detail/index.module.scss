@@ -1,0 +1,309 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.chairHeader {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: 80rpx $page-padding 100rpx;
+  position: relative;
+}
+
+.chairName {
+  font-size: 48rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-sm;
+}
+
+.chairStatus {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  color: $color-text-white;
+}
+
+.statsRow {
+  display: flex;
+  gap: $spacing-md;
+  padding: 0 $page-padding;
+  margin-top: -48rpx;
+  position: relative;
+  z-index: 10;
+}
+
+.statCard {
+  flex: 1;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  text-align: center;
+  box-shadow: $shadow-card;
+}
+
+.statValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.loadSection {
+  background: $color-bg-card;
+  margin: $spacing-lg $page-padding;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+}
+
+.loadBar {
+  height: 24rpx;
+  background: $color-divider;
+  border-radius: $radius-round;
+  overflow: hidden;
+  margin-bottom: $spacing-sm;
+}
+
+.loadFill {
+  height: 100%;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+
+  &.low { background: $color-success; }
+  &.medium { background: $color-warning; }
+  &.high { background: $color-error; }
+}
+
+.loadInfo {
+  display: flex;
+  justify-content: space-between;
+}
+
+.loadLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.loadPercent {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+
+  &.low { color: $color-success; }
+  &.medium { color: $color-warning; }
+  &.high { color: $color-error; }
+}
+
+.doctorSection {
+  background: $color-bg-card;
+  margin: 0 $page-padding $spacing-lg;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.doctorCard {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+}
+
+.doctorAvatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+  background: $color-bg-hover;
+}
+
+.doctorInfo {
+  flex: 1;
+}
+
+.doctorName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.doctorTitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.doctorSpecialty {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.doctorStatus {
+  font-size: $font-size-xs;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  background: $color-success-bg;
+  color: $color-success;
+}
+
+.scheduleSection {
+  background: $color-bg-card;
+  margin: 0 $page-padding $spacing-lg;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.scheduleTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.timelineItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+
+  &.available {
+    background: $color-success-bg;
+  }
+
+  &.occupied {
+    background: $color-primary-bg;
+  }
+
+  &.maintenance {
+    background: $color-warning-bg;
+  }
+}
+
+.timelineTime {
+  width: 120rpx;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.timelineDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+
+  &.available { background: $color-success; }
+  &.occupied { background: $color-primary; }
+  &.maintenance { background: $color-warning; }
+}
+
+.timelineContent {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.actionBtn {
+  @include button-reset;
+  margin: $spacing-lg $page-padding;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-button;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  &.disabled {
+    background: $color-text-disabled;
+    box-shadow: none;
+  }
+}
+
+.actionBtnText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.queueSection {
+  background: $color-bg-card;
+  margin: 0 $page-padding $spacing-lg;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.queueList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.queueItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+}
+
+.queueNumber {
+  width: 60rpx;
+  height: 60rpx;
+  background: $color-primary-bg;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-md;
+}
+
+.queueNumberText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.queueInfo {
+  flex: 1;
+}
+
+.queueName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 2rpx;
+}
+
+.queueTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.queuePosition {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

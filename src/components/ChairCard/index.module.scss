@@ -1,0 +1,130 @@
+@use '@/styles/variables.scss' as *;
+
+.chairCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-card-hover;
+  }
+
+  &.compact {
+    padding: $spacing-md;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.chairName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.status {
+  padding: 4rpx 16rpx;
+  border-radius: $radius-sm;
+
+  &.statusIdle {
+    background: $color-success-bg;
+    .statusText { color: $color-success; }
+  }
+
+  &.statusBusy {
+    background: $color-primary-bg;
+    .statusText { color: $color-primary; }
+  }
+
+  &.statusMaintenance {
+    background: $color-warning-bg;
+    .statusText { color: $color-warning; }
+  }
+
+  &.statusOffline {
+    background: $color-bg-hover;
+    .statusText { color: $color-text-tertiary; }
+  }
+}
+
+.statusText {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.currentPatient {
+  display: flex;
+  align-items: center;
+  background: $color-primary-bg;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.patientLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-right: $spacing-sm;
+}
+
+.patientName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.patientNumber {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.statsRow {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: $spacing-md;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.loadBar {
+  height: 8rpx;
+  background: $color-divider;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.loadFill {
+  height: 100%;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+
+  &.loadLow { background: $color-success; }
+  &.loadMedium { background: $color-warning; }
+  &.loadHigh { background: $color-error; }
+}

@@ -1,0 +1,217 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.dateSelector {
+  background: $color-bg-card;
+  padding: $spacing-md 0;
+  box-shadow: $shadow-card;
+}
+
+.dateScroll {
+  @include scroll-x-container;
+  padding: 0 $page-padding;
+}
+
+.dateItem {
+  @include scroll-x-item(120rpx);
+  margin-right: $spacing-md;
+  text-align: center;
+  padding: $spacing-md $spacing-sm;
+  border-radius: $radius-lg;
+  transition: all $transition-base;
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  &.active {
+    background: $color-primary;
+
+    .weekday, .dateDay, .dateNum {
+      color: $color-text-white;
+    }
+  }
+}
+
+.weekday {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: 8rpx;
+}
+
+.dateDay {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  line-height: 1;
+}
+
+.dateNum {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 8rpx;
+}
+
+.statsBar {
+  display: flex;
+  padding: $spacing-md $page-padding;
+  background: $color-bg-card;
+  margin-top: $spacing-sm;
+  border-top: 1rpx solid $color-divider;
+}
+
+.statItem {
+  flex: 1;
+  text-align: center;
+}
+
+.statValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  display: block;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.section {
+  padding: $spacing-lg $page-padding;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.shiftSection {
+  margin-bottom: $spacing-xl;
+}
+
+.shiftTitle {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+.shiftIcon {
+  width: 8rpx;
+  height: 32rpx;
+  background: $color-primary;
+  border-radius: $radius-round;
+  margin-right: $spacing-sm;
+}
+
+.shiftName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.shiftTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-left: $spacing-sm;
+}
+
+.doctorList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.chairRosterSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin: 0 $page-padding $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.chairRosterTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.chairRosterList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.chairRosterItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+}
+
+.chairNum {
+  width: 64rpx;
+  height: 64rpx;
+  background: $color-primary-bg;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.chairNumText {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.chairInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.doctorName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.doctorTitle {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.chairStatus {
+  flex-shrink: 0;
+}
+
+.statusText {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &.onDuty { color: $color-success; }
+  &.offDuty { color: $color-text-tertiary; }
+}
+
+.emptyState {
+  text-align: center;
+  padding: $spacing-xl;
+}
+
+.emptyText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

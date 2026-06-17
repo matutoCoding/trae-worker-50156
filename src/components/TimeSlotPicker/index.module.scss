@@ -1,0 +1,69 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  gap: $spacing-md;
+}
+
+.slot {
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  padding: $spacing-md $spacing-sm;
+  text-align: center;
+  transition: all $transition-base;
+
+  &:active:not(.disabled) {
+    transform: scale(0.95);
+  }
+
+  &.selected {
+    background: $color-primary-bg;
+    border-color: $color-primary;
+
+    .timeText {
+      color: $color-primary;
+      font-weight: $font-weight-semibold;
+    }
+
+    .availableText {
+      color: $color-primary;
+    }
+  }
+
+  &.disabled {
+    opacity: 0.5;
+  }
+
+  &.full {
+    background: $color-bg-page;
+
+    .timeText {
+      color: $color-text-tertiary;
+      text-decoration: line-through;
+    }
+  }
+}
+
+.timeText {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.availableText {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-success;
+}
+
+.fullText {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

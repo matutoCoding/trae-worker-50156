@@ -1,0 +1,62 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  width: 100%;
+
+  &.sm {
+    .header { margin-bottom: 8rpx; }
+    .label { font-size: $font-size-xs; }
+    .value { font-size: $font-size-xs; }
+    .bar { height: 6rpx; }
+  }
+
+  &.md {
+    .header { margin-bottom: $spacing-xs; }
+    .label { font-size: $font-size-sm; }
+    .value { font-size: $font-size-sm; }
+    .bar { height: 10rpx; }
+  }
+
+  &.lg {
+    .header { margin-bottom: $spacing-sm; }
+    .label { font-size: $font-size-md; }
+    .value { font-size: $font-size-md; }
+    .bar { height: 14rpx; }
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  color: $color-text-secondary;
+  font-weight: $font-weight-normal;
+}
+
+.value {
+  font-weight: $font-weight-semibold;
+
+  &.low { color: $color-success; }
+  &.medium { color: $color-warning; }
+  &.high { color: $color-error; }
+}
+
+.bar {
+  width: 100%;
+  background: $color-divider;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: $radius-round;
+  transition: width $transition-base;
+
+  &.low { background: $color-success; }
+  &.medium { background: $color-warning; }
+  &.high { background: $color-error; }
+}

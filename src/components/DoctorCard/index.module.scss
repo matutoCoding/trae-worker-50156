@@ -1,0 +1,122 @@
+@use '@/styles/variables.scss' as *;
+
+.doctorCard {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.compact {
+    padding: $spacing-md;
+
+    .avatar {
+      width: 80rpx;
+      height: 80rpx;
+    }
+
+    .name {
+      font-size: $font-size-md;
+    }
+
+    .title {
+      font-size: $font-size-xs;
+    }
+  }
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-lg;
+  flex-shrink: 0;
+  background: $color-bg-page;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-right: $spacing-sm;
+}
+
+.status {
+  padding: 2rpx 12rpx;
+  border-radius: $radius-xs;
+
+  &.onDuty {
+    background: $color-success-bg;
+    .statusText { color: $color-success; }
+  }
+
+  &.offDuty {
+    background: $color-bg-hover;
+    .statusText { color: $color-text-tertiary; }
+  }
+
+  &.leave {
+    background: $color-warning-bg;
+    .statusText { color: $color-warning; }
+  }
+}
+
+.statusText {
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+}
+
+.title {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.specialty {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+  @include text-ellipsis;
+}
+
+.statsRow {
+  display: flex;
+  gap: $spacing-xl;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
