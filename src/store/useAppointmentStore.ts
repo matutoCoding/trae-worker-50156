@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import type { Appointment, ScheduleDay, ScheduleTimeSlot } from '@/types/appointment';
 import type { Chair } from '@/types/chair';
+import type { TimeSlot } from '@/types/chair';
 import { mockAppointments, mockScheduleDays, generateTimeSlots } from '@/data/mockAppointments';
 import { useChairStore } from '@/store/useChairStore';
-import { findBestSlot } from '@/utils/scheduler';
+import { findBestSlot, timeToMinutes, minutesToTime } from '@/utils/scheduler';
 import dayjs from 'dayjs';
 
 interface AppointmentState {
@@ -18,6 +19,8 @@ interface AppointmentState {
   selectDate: (date: string) => void;
   selectSlot: (slot: ScheduleTimeSlot | null) => void;
   getSlotsForDate: (date: string) => ScheduleTimeSlot[];
+  getChairDaySchedule: (chairId: string, date: string) => TimeSlot[];
+  getDayAppointmentsByChair: (chairId: string, date: string) => Appointment[];
   getAppointmentById: (id: string) => Appointment | undefined;
   getMyAppointments: () => Appointment[];
   findBestAllocation: (
@@ -74,10 +77,17 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
     const baseSlots = generateTimeSlots();
     return baseSlots.map(slot => {
+      const slotStart = timeToMinutes(slot.time);
+      const slotEnd = slotStart + 30;
       const bookedChairIds: string[] = [];
+
       dayAppointments.forEach(a => {
-        if (a.startTime === slot.time && !bookedChairIds.includes(a.chairId)) {
-          bookedChairIds.push(a.chairId);
+        const aStart = timeToMinutes(a.startTime);
+        const aEnd = timeToMinutes(a.endTime);
+        if (!(aEnd <= slotStart || aStart >= slotEnd)) {
+          if (!bookedChairIds.includes(a.chairId)) {
+            bookedChairIds.push(a.chairId);
+          }
         }
       });
 
@@ -94,6 +104,67 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         totalCount: totalCapacity
       } as ScheduleTimeSlot;
     });
+  },
+
+  getDayAppointmentsByChair: (chairId: string, date: string) => {
+    return get()
+      .appointments
+      .filter(a => a.chairId === chairId && a.date === date && a.status !== 'cancelled')
+      .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+  },
+
+  getChairDaySchedule: (chairId: string, date: string) => {
+    const chairState = useChairStore.getState();
+    const chair = chairState.getChairById(chairId);
+    const dayAppts = get().getDayAppointmentsByChair(chairId, date);
+    const slots: TimeSlot[] = [];
+    const startHour = 8;
+    const endHour = 18;
+    const interval = 30;
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let min = 0; min < 60; min += interval) {
+        if (hour === 12 && min < 30) continue;
+        const startTime = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+        const endTime = minutesToTime(hour * 60 + min + interval);
+        const slotStart = hour * 60 + min;
+        const slotEnd = slotStart + interval;
+
+        const occupied = dayAppts.find(a => {
+          const aStart = timeToMinutes(a.startTime);
+          const aEnd = timeToMinutes(a.endTime);
+          return !(aEnd <= slotStart || aStart >= slotEnd);
+        });
+
+        let available = true;
+        let status: 'available' | 'occupied' | 'maintenance' | 'offline' = 'available';
+        let appointmentInfo: any = null;
+
+        if (chair?.status === 'maintenance') {
+          status = 'maintenance';
+          available = false;
+        } else if (chair?.status === 'offline') {
+          status = 'offline';
+          available = false;
+        } else if (occupied) {
+          status = 'occupied';
+          available = false;
+          appointmentInfo = occupied;
+        }
+
+        slots.push({
+          id: `${chairId}-${date}-${hour}-${min}`,
+          startTime,
+          endTime,
+          available,
+          chairId,
+          status,
+          appointment: appointmentInfo
+        });
+      }
+    }
+
+    return slots;
   },
 
   getAppointmentById: (id: string) => {

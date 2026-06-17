@@ -128,3 +128,23 @@
   &.loadMedium { background: $color-warning; }
   &.loadHigh { background: $color-error; }
 }
+
+.appointmentInfo {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.appointmentCount {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.appointmentTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

@@ -19,6 +19,10 @@ export interface TimeSlot {
   endTime: string;
   available: boolean;
   chairId?: string;
+  status?: 'available' | 'occupied' | 'maintenance' | 'offline' | 'visiting' | 'queued';
+  appointment?: any;
+  patientName?: string;
+  patientNumber?: number;
 }
 
 export interface ChairSchedule {

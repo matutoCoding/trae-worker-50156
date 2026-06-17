@@ -6,16 +6,18 @@ import classnames from 'classnames';
 import styles from './index.module.scss';
 import { useChairStore } from '@/store/useChairStore';
 import { useQueueStore } from '@/store/useQueueStore';
+import { useAppointmentStore } from '@/store/useAppointmentStore';
 import { getDoctorByChairId } from '@/data/mockDoctors';
-import { generateChairTimeSlots } from '@/utils/scheduler';
+import { timeToMinutes, minutesToTime } from '@/utils/scheduler';
 import { getLoadLevel } from '@/utils/loadBalancer';
 import { getStatusText } from '@/utils/format';
 import type { Chair } from '@/types/chair';
 import type { TimeSlot } from '@/types/chair';
+import dayjs from 'dayjs';
 
 const ChairDetailPage: React.FC = () => {
   const router = useRouter();
-  const { getChairById, chairs } = useChairStore();
+  const { getChairById, chairs, getTodayAppointmentsCount, getTodayOccupiedMinutes } = useChairStore();
   const {
     getWaitingByChair,
     callNextByChair,
@@ -23,19 +25,19 @@ const ChairDetailPage: React.FC = () => {
     getCurrentVisitingPatient,
     patients
   } = useQueueStore();
+  const { getChairDaySchedule, appointments } = useAppointmentStore();
 
   const [chair, setChair] = useState<Chair | null>(null);
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isCalling, setIsCalling] = useState(false);
 
   const chairId = router.params.id;
+  const today = dayjs().format('YYYY-MM-DD');
 
   useEffect(() => {
     if (chairId) {
       const chairData = getChairById(chairId);
       if (chairData) {
         setChair(chairData);
-        setTimeSlots(generateChairTimeSlots(chairId, new Date().toISOString().split('T')[0]));
       }
     }
   }, [chairId, getChairById]);
@@ -63,14 +65,81 @@ const ChairDetailPage: React.FC = () => {
     return getCurrentVisitingPatient(chairId);
   }, [chairId, getCurrentVisitingPatient, patients]);
 
-  const upcomingSlots = useMemo(() => {
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    return timeSlots.filter(slot => {
-      const [hours, minutes] = slot.startTime.split(':').map(Number);
-      return hours * 60 + minutes >= currentMinutes;
-    }).slice(0, 6);
-  }, [timeSlots]);
+  const appointmentStats = useMemo(() => {
+    if (!chairId) return { count: 0, timeStr: '0m' };
+    const count = getTodayAppointmentsCount(chairId);
+    const minutes = getTodayOccupiedMinutes(chairId);
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const timeStr = hours > 0
+      ? `${hours}小时${mins > 0 ? `${mins}分` : ''}`
+      : `${mins}分钟`;
+    return { count, timeStr, minutes };
+  }, [chairId, getTodayAppointmentsCount, getTodayOccupiedMinutes, appointments]);
+
+  const dayViewSlots = useMemo<(TimeSlot & { label?: string; subLabel?: string })[]>(() => {
+    if (!chairId) return [];
+    const baseSlots = getChairDaySchedule(chairId, today);
+    if (!visitingPatient && waitingPatients.length === 0) {
+      return baseSlots;
+    }
+
+    const nowMin = timeToMinutes(dayjs().format('HH:mm'));
+    const result = [...baseSlots];
+
+    if (visitingPatient) {
+      const visitEnd = Math.min(Math.max(nowMin + 20, nowMin), 18 * 60);
+      for (let i = 0; i < result.length; i++) {
+        const sStart = timeToMinutes(result[i].startTime);
+        const sEnd = sStart + 30;
+        if (!(visitEnd <= sStart || nowMin >= sEnd)) {
+          result[i] = {
+            ...result[i],
+            status: 'visiting',
+            available: false,
+            patientName: visitingPatient.name,
+            patientNumber: visitingPatient.number,
+            label: '正在就诊',
+            subLabel: `${visitingPatient.number}号 ${visitingPatient.name}`
+          };
+        }
+      }
+    }
+
+    if (waitingPatients.length > 0) {
+      let queueStart = visitingPatient
+        ? Math.ceil((nowMin + 30) / 30) * 30
+        : Math.ceil(nowMin / 30) * 30;
+
+      waitingPatients.forEach((patient, idx) => {
+        const pStart = queueStart + idx * 30;
+        const pEnd = pStart + 30;
+        if (pStart >= 18 * 60) return;
+
+        for (let i = 0; i < result.length; i++) {
+          const sStart = timeToMinutes(result[i].startTime);
+          const sEnd = sStart + 30;
+          if (!(pEnd <= sStart || pStart >= sEnd)) {
+            if (result[i].status === 'available') {
+              result[i] = {
+                ...result[i],
+                status: 'queued',
+                available: false,
+                patientName: patient.name,
+                patientNumber: patient.number,
+                label: idx === 0 ? '下一位' : `排队第${idx + 1}位`,
+                subLabel: `${patient.number}号 ${patient.name}`
+              };
+            }
+          }
+        }
+      });
+    }
+
+    return result;
+  }, [chairId, today, getChairDaySchedule, visitingPatient, waitingPatients, appointments]);
+
+  const upcomingSlots = dayViewSlots;
 
   const handleCallNext = () => {
     if (!chairId || !chair) return;
@@ -185,8 +254,12 @@ const ChairDetailPage: React.FC = () => {
           <Text className={styles.statLabel}>今日接诊</Text>
         </View>
         <View className={styles.statCard}>
-          <Text className={styles.statValue}>{chair.department}</Text>
-          <Text className={styles.statLabel}>所属科室</Text>
+          <Text className={styles.statValue}>{appointmentStats.count}</Text>
+          <Text className={styles.statLabel}>今日预约</Text>
+        </View>
+        <View className={styles.statCard}>
+          <Text className={styles.statValueSmall}>{appointmentStats.timeStr}</Text>
+          <Text className={styles.statLabel}>预约占用</Text>
         </View>
       </View>
 
@@ -288,20 +361,66 @@ const ChairDetailPage: React.FC = () => {
       )}
 
       <View className={styles.scheduleSection}>
-        <Text className={styles.sectionTitle}>今日排期</Text>
-        <View className={styles.scheduleTimeline}>
-          {upcomingSlots.map(slot => {
-            let status: 'available' | 'occupied' | 'maintenance' = 'available';
-            if (chair.status === 'maintenance') status = 'maintenance';
-            else if (!slot.available) status = 'occupied';
+        <View className={styles.scheduleHeader}>
+          <Text className={styles.sectionTitle}>今日安排 · 日视图</Text>
+          <View className={styles.scheduleLegend}>
+            <View className={styles.legendItem}>
+              <View className={`${styles.legendDot} ${styles.legendVisiting}`} />
+              <Text className={styles.legendText}>就诊</Text>
+            </View>
+            <View className={styles.legendItem}>
+              <View className={`${styles.legendDot} ${styles.legendQueued}`} />
+              <Text className={styles.legendText}>排队</Text>
+            </View>
+            <View className={styles.legendItem}>
+              <View className={`${styles.legendDot} ${styles.legendOccupied}`} />
+              <Text className={styles.legendText}>预约</Text>
+            </View>
+            <View className={styles.legendItem}>
+              <View className={`${styles.legendDot} ${styles.legendAvailable}`} />
+              <Text className={styles.legendText}>空闲</Text>
+            </View>
+          </View>
+        </View>
+        <View className={styles.dayView}>
+          {dayViewSlots.map(slot => {
+            const statusClass = slot.status || (slot.available ? 'available' : 'occupied');
+            const labelMap: Record<string, string> = {
+              visiting: '正在就诊',
+              queued: slot.label || '排队中',
+              occupied: '已预约',
+              maintenance: '维护中',
+              offline: '离线',
+              available: '空闲可约'
+            };
+            const subLabel = slot.subLabel
+              || (slot.appointment ? `${slot.appointment.patientName}` : '');
 
             return (
-              <View key={slot.id} className={classnames(styles.timelineItem, styles[status])}>
-                <Text className={styles.timelineTime}>{slot.startTime}</Text>
-                <View className={classnames(styles.timelineDot, styles[status])} />
-                <Text className={styles.timelineContent}>
-                  {status === 'available' ? '可预约' : status === 'occupied' ? '已预约' : '维护中'}
-                </Text>
+              <View
+                key={slot.id}
+                className={classnames(styles.dayViewItem, styles[statusClass])}
+              >
+                <View className={styles.dayViewTime}>
+                  <Text className={styles.dayViewTimeText}>{slot.startTime}</Text>
+                </View>
+                <View className={styles.dayViewDotWrap}>
+                  <View className={classnames(styles.dayViewDot, styles[`dot${statusClass.charAt(0).toUpperCase()}${statusClass.slice(1)}`])} />
+                  <View className={styles.dayViewLine} />
+                </View>
+                <View className={styles.dayViewContent}>
+                  <Text className={styles.dayViewLabel}>
+                    {slot.label || labelMap[statusClass] || '未知'}
+                  </Text>
+                  {subLabel && (
+                    <Text className={styles.dayViewSubLabel}>{subLabel}</Text>
+                  )}
+                  {statusClass === 'occupied' && slot.appointment && (
+                    <Text className={styles.dayViewMeta}>
+                      {slot.appointment.type || slot.appointment.department} · {slot.appointment.startTime}-{slot.appointment.endTime}
+                    </Text>
+                  )}
+                </View>
               </View>
             );
           })}

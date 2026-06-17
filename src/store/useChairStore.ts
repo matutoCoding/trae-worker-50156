@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { Chair } from '@/types/chair';
 import { mockChairs } from '@/data/mockChairs';
 import { findBestChair, calculateLoadRate } from '@/utils/loadBalancer';
+import { useAppointmentStore } from '@/store/useAppointmentStore';
+import dayjs from 'dayjs';
 
 interface ChairState {
   chairs: Chair[];
@@ -15,6 +17,8 @@ interface ChairState {
   setCurrentPatient: (id: string, patientName: string, patientNumber: number) => void;
   incrementTodayTotal: (id: string) => void;
   clearCurrentPatient: (id: string) => void;
+  getTodayAppointmentsCount: (id: string) => number;
+  getTodayOccupiedMinutes: (id: string) => number;
 }
 
 export const useChairStore = create<ChairState>((set, get) => ({
@@ -125,5 +129,27 @@ export const useChairStore = create<ChairState>((set, get) => ({
           : chair
       )
     }));
+  },
+
+  getTodayAppointmentsCount: (id: string) => {
+    const today = dayjs().format('YYYY-MM-DD');
+    const apptState = useAppointmentStore.getState();
+    const dayAppts = apptState.appointments.filter(
+      a => a.chairId === id && a.date === today && a.status !== 'cancelled'
+    );
+    return dayAppts.length;
+  },
+
+  getTodayOccupiedMinutes: (id: string) => {
+    const today = dayjs().format('YYYY-MM-DD');
+    const apptState = useAppointmentStore.getState();
+    const dayAppts = apptState.appointments.filter(
+      a => a.chairId === id && a.date === today && a.status !== 'cancelled'
+    );
+    const timeToMin = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    return dayAppts.reduce((sum, a) => sum + (timeToMin(a.endTime) - timeToMin(a.startTime)), 0);
   }
 }));

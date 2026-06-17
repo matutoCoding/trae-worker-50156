@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import type { Chair } from '@/types/chair';
 import { getStatusText } from '@/utils/format';
+import { useChairStore } from '@/store/useChairStore';
+import { useAppointmentStore } from '@/store/useAppointmentStore';
 
 interface ChairCardProps {
   chair: Chair;
@@ -12,6 +14,20 @@ interface ChairCardProps {
 }
 
 const ChairCard: React.FC<ChairCardProps> = ({ chair, onClick, compact = false }) => {
+  const { getTodayAppointmentsCount, getTodayOccupiedMinutes } = useChairStore();
+  const { appointments } = useAppointmentStore();
+
+  const stats = useMemo(() => {
+    const count = getTodayAppointmentsCount(chair.id);
+    const minutes = getTodayOccupiedMinutes(chair.id);
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const timeStr = hours > 0
+      ? `${hours}h${mins > 0 ? `${mins}m` : ''}`
+      : `${mins}m`;
+    return { count, timeStr, minutes };
+  }, [chair.id, appointments, getTodayAppointmentsCount, getTodayOccupiedMinutes]);
+
   const statusClass = classnames(styles.status, {
     [styles.statusIdle]: chair.status === 'idle',
     [styles.statusBusy]: chair.status === 'busy',
@@ -66,6 +82,13 @@ const ChairCard: React.FC<ChairCardProps> = ({ chair, onClick, compact = false }
               style={{ width: `${chair.loadRate}%` }}
             />
           </View>
+
+          {stats.count > 0 && (
+            <View className={styles.appointmentInfo}>
+              <Text className={styles.appointmentCount}>📅 今日 {stats.count} 个预约</Text>
+              <Text className={styles.appointmentTime}>占用 {stats.timeStr}</Text>
+            </View>
+          )}
         </>
       )}
     </View>

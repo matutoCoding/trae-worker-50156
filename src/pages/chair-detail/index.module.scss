@@ -53,6 +53,15 @@
   margin-bottom: 4rpx;
 }
 
+.statValueSmall {
+  font-size: 24rpx;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+  display: block;
+  margin-bottom: 4rpx;
+  line-height: 1.4;
+}
+
 .statLabel {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
@@ -174,53 +183,171 @@
   box-shadow: $shadow-card;
 }
 
-.scheduleTimeline {
+.scheduleHeader {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
   gap: $spacing-sm;
+
+  .sectionTitle {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
 }
 
-.timelineItem {
+.scheduleLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+}
+
+.legendItem {
   display: flex;
   align-items: center;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $radius-md;
-
-  &.available {
-    background: $color-success-bg;
-  }
-
-  &.occupied {
-    background: $color-primary-bg;
-  }
-
-  &.maintenance {
-    background: $color-warning-bg;
-  }
+  gap: 8rpx;
 }
 
-.timelineTime {
-  width: 120rpx;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
-  font-weight: $font-weight-medium;
-}
-
-.timelineDot {
+.legendDot {
   width: 16rpx;
   height: 16rpx;
   border-radius: $radius-round;
-  margin-right: $spacing-md;
+  flex-shrink: 0;
 
-  &.available { background: $color-success; }
-  &.occupied { background: $color-primary; }
-  &.maintenance { background: $color-warning; }
+  &.legendVisiting { background: $color-error; }
+  &.legendQueued { background: $color-warning; }
+  &.legendOccupied { background: $color-primary; }
+  &.legendAvailable { background: $color-success; }
 }
 
-.timelineContent {
-  flex: 1;
-  font-size: $font-size-sm;
+.legendText {
+  font-size: 20rpx;
   color: $color-text-secondary;
+}
+
+.dayView {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.dayViewItem {
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-sm 0;
+  position: relative;
+
+  &:last-child {
+    .dayViewLine {
+      display: none;
+    }
+  }
+
+  &.visiting {
+    background: mix($color-error, $color-bg-card, 8%);
+    border-radius: $radius-md;
+    padding: $spacing-sm $spacing-md;
+    margin: 0 (-$spacing-sm);
+  }
+
+  &.queued {
+    background: mix($color-warning, $color-bg-card, 6%);
+    border-radius: $radius-md;
+    padding: $spacing-sm $spacing-md;
+    margin: 0 (-$spacing-sm);
+  }
+
+  &.occupied {
+    background: mix($color-primary, $color-bg-card, 6%);
+    border-radius: $radius-md;
+    padding: $spacing-sm $spacing-md;
+    margin: 0 (-$spacing-sm);
+  }
+
+  &.maintenance {
+    opacity: 0.6;
+  }
+
+  &.offline {
+    opacity: 0.4;
+  }
+}
+
+.dayViewTime {
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.dayViewTimeText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.4;
+}
+
+.dayViewDotWrap {
+  width: 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.dayViewDot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: $radius-round;
+  z-index: 2;
+  margin-top: 6rpx;
+  flex-shrink: 0;
+
+  &.dotVisiting { background: $color-error; box-shadow: 0 0 0 6rpx rgba($color-error, 0.15); }
+  &.dotQueued { background: $color-warning; }
+  &.dotOccupied { background: $color-primary; }
+  &.dotMaintenance { background: $color-warning; }
+  &.dotOffline { background: $color-text-disabled; }
+  &.dotAvailable { background: $color-success; }
+}
+
+.dayViewLine {
+  position: absolute;
+  top: 30rpx;
+  bottom: -$spacing-sm;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rpx;
+  background: $color-divider;
+  z-index: 1;
+}
+
+.dayViewContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.dayViewLabel {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  line-height: 1.4;
+}
+
+.dayViewSubLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: 2rpx;
+  line-height: 1.4;
+}
+
+.dayViewMeta {
+  display: block;
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  line-height: 1.4;
 }
 
 .actionBtn {
