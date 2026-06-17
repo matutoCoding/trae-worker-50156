@@ -1,80 +1,124 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import TimeSlotPicker from '@/components/TimeSlotPicker';
 import ScheduleTimeline from '@/components/ScheduleTimeline';
-import { mockScheduleDays, mockAppointments } from '@/data/mockAppointments';
-import { mockChairs } from '@/data/mockChairs';
+import { mockScheduleDays } from '@/data/mockAppointments';
+import { useChairStore } from '@/store/useChairStore';
+import { useAppointmentStore } from '@/store/useAppointmentStore';
 import { generateChairTimeSlots } from '@/utils/scheduler';
 import type { ScheduleTimeSlot } from '@/types/appointment';
 import type { TimeSlot } from '@/types/chair';
+import dayjs from 'dayjs';
 
 const SchedulePage: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(0);
+  const { chairs } = useChairStore();
+  const {
+    scheduleDays,
+    fetchAppointments,
+    getSlotsForDate,
+    findBestAllocation,
+    createAppointment
+  } = useAppointmentStore();
+
+  const [selectedDateIndex, setSelectedDateIndex] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState<ScheduleTimeSlot | null>(null);
 
-  const currentDate = mockScheduleDays[selectedDate];
+  const displayDays = useMemo(() => {
+    if (scheduleDays && scheduleDays.length > 0) {
+      return scheduleDays;
+    }
+    return mockScheduleDays;
+  }, [scheduleDays]);
+
+  const currentDate = displayDays[selectedDateIndex];
+  const dateKey = currentDate.date;
+
+  const actualSlots = useMemo(() => {
+    return getSlotsForDate(dateKey);
+  }, [dateKey, getSlotsForDate]);
 
   const chairTimeSlots = useMemo(() => {
-    return mockChairs.map(chair => ({
+    return chairs.map(chair => ({
       chairId: chair.id,
-      slots: generateChairTimeSlots(chair.id, currentDate.date)
+      slots: generateChairTimeSlots(chair.id, dateKey)
     }));
-  }, [currentDate.date]);
+  }, [chairs, dateKey]);
+
+  const allocatedResult = useMemo(() => {
+    if (!selectedSlot) return null;
+    return findBestAllocation(dateKey, selectedSlot);
+  }, [dateKey, selectedSlot, findBestAllocation]);
 
   const allocatedChair = useMemo(() => {
-    if (!selectedSlot) return null;
-
-    const availableChairs = mockChairs.filter(
-      chair => chair.status !== 'offline' && chair.status !== 'maintenance'
-    );
-
-    if (availableChairs.length === 0) return null;
-
-    const sortedChairs = [...availableChairs].sort((a, b) => {
-      const aLoad = a.loadRate + a.todayTotal * 2;
-      const bLoad = b.loadRate + b.todayTotal * 2;
-      return aLoad - bLoad;
-    });
-
-    const bestChair = sortedChairs[0];
-    const score = Math.round(100 - bestChair.loadRate * 0.5 - bestChair.todayTotal * 2);
-
+    if (!allocatedResult) return null;
+    const chair = chairs.find(c => c.id === allocatedResult.chairId);
     return {
-      chair: bestChair,
-      score,
-      reason: '系统智能分配：负载均衡 + 低工作量 + 连续空闲时段'
+      chair,
+      score: allocatedResult.score,
+      reason: allocatedResult.reason
     };
-  }, [selectedSlot]);
+  }, [allocatedResult, chairs]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const handleDateSelect = (index: number) => {
-    setSelectedDate(index);
+    setSelectedDateIndex(index);
     setSelectedSlot(null);
   };
 
   const handleSlotSelect = (slot: ScheduleTimeSlot) => {
+    if (!slot.isAvailable) {
+      Taro.showToast({ title: '该时段已约满', icon: 'none' });
+      return;
+    }
     setSelectedSlot(slot);
   };
 
   const handleConfirm = () => {
-    if (!selectedSlot || !allocatedChair) {
+    if (!selectedSlot) {
       Taro.showToast({ title: '请先选择时段', icon: 'none' });
       return;
     }
+    if (!allocatedResult) {
+      Taro.showToast({ title: '当前无可用牙椅', icon: 'none' });
+      return;
+    }
+
+    const chairName = allocatedChair?.chair?.name || allocatedResult.chairName;
 
     Taro.showModal({
       title: '确认预约',
-      content: `预约${currentDate.date} ${selectedSlot.time} ${allocatedChair.chair.name}？`,
+      content: `确认预约${currentDate.weekday} ${dateKey} ${selectedSlot.time} ${chairName}？`,
       success: (res) => {
         if (res.confirm) {
-          Taro.showToast({ title: '预约成功', icon: 'success' });
-          setTimeout(() => {
-            Taro.navigateTo({
-              url: `/pages/appointment-detail/index?id=${Date.now()}`
+          const result = createAppointment({
+            date: dateKey,
+            slot: selectedSlot,
+            patientName: '张小明',
+            patientPhone: '138****0000',
+            department: '口腔综合'
+          });
+
+          if (result) {
+            console.log('[Schedule] 预约创建成功:', result);
+            Taro.showToast({ title: '预约成功', icon: 'success' });
+
+            setTimeout(() => {
+              Taro.redirectTo({
+                url: `/pages/appointment-detail/index?id=${result.appointment.id}&new=1`
+              });
+            }, 1200);
+          } else {
+            Taro.showToast({
+              title: '预约失败，请稍后重试',
+              icon: 'none'
             });
-          }, 1500);
+          }
         }
       }
     });
@@ -84,11 +128,11 @@ const SchedulePage: React.FC = () => {
     <ScrollView scrollY className={styles.page}>
       <View className={styles.dateSelector}>
         <ScrollView scrollX className={styles.dateScroll}>
-          {mockScheduleDays.map((day, index) => (
+          {displayDays.map((day, index) => (
             <View
               key={day.date}
               className={classnames(styles.dateItem, {
-                [styles.active]: index === selectedDate
+                [styles.active]: index === selectedDateIndex
               })}
               onClick={() => handleDateSelect(index)}
             >
@@ -126,7 +170,7 @@ const SchedulePage: React.FC = () => {
       <View className={styles.section}>
         <Text className={styles.sectionTitle}>选择时段</Text>
         <TimeSlotPicker
-          slots={currentDate.timeSlots}
+          slots={actualSlots}
           selectedSlotId={selectedSlot?.id}
           onSelect={handleSlotSelect}
           columns={4}
@@ -136,12 +180,12 @@ const SchedulePage: React.FC = () => {
         </Text>
       </View>
 
-      {allocatedChair && selectedSlot && (
+      {allocatedChair && selectedSlot && allocatedChair.chair && (
         <View className={styles.allocationCard}>
           <View className={styles.allocationHeader}>
             <Text className={styles.allocationTitle}>智能分配结果</Text>
             <View className={styles.allocationBadge}>
-              <Text className={styles.allocationBadgeText}>已为您匹配最优牙椅</Text>
+              <Text className={styles.allocationBadgeText}>已匹配最优牙椅</Text>
             </View>
           </View>
 
@@ -149,7 +193,7 @@ const SchedulePage: React.FC = () => {
             <View className={styles.allocationChair}>
               <Text className={styles.chairName}>{allocatedChair.chair.name}</Text>
               <Text className={styles.chairTime}>
-                {currentDate.date} {selectedSlot.time} · 约30分钟
+                {dateKey} {selectedSlot.time} · 约30分钟
               </Text>
             </View>
             <View className={styles.allocationScore}>
@@ -167,7 +211,7 @@ const SchedulePage: React.FC = () => {
       <View className={styles.timelineSection}>
         <Text className={styles.sectionTitle}>牙椅排期时间轴</Text>
         <ScheduleTimeline
-          chairs={mockChairs}
+          chairs={chairs}
           timeSlots={chairTimeSlots as { chairId: string; slots: TimeSlot[] }[]}
         />
       </View>
@@ -177,7 +221,7 @@ const SchedulePage: React.FC = () => {
           <Text className={styles.summaryLabel}>已选：</Text>
           <Text className={styles.summaryValue}>
             {selectedSlot
-              ? `${currentDate.weekday} ${selectedSlot.time} ${allocatedChair?.chair.name || ''}`
+              ? `${currentDate.weekday} ${selectedSlot.time} ${allocatedChair?.chair?.name || '系统分配'}`
               : '请选择预约时段'}
           </Text>
         </View>

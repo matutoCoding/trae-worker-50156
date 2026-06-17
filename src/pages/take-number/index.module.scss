@@ -265,3 +265,248 @@
   font-weight: $font-weight-semibold;
   color: $color-text-white;
 }
+
+.successContainer {
+  padding: $spacing-xl $page-padding;
+}
+
+.successIcon {
+  width: 160rpx;
+  height: 160rpx;
+  margin: 0 auto $spacing-lg;
+  background: linear-gradient(135deg, $color-success 0%, $color-primary 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80rpx;
+  color: $color-text-white;
+  font-weight: $font-weight-bold;
+  box-shadow: 0 8rpx 32rpx rgba($color-primary, 0.3);
+}
+
+.successTitle {
+  display: block;
+  text-align: center;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.successSubtitle {
+  display: block;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xl;
+}
+
+.resultCard {
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-xl;
+  box-shadow: $shadow-card;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+}
+
+.resultLabel {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.resultValue {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.resultNumber {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.resultDivider {
+  height: 2rpx;
+  background: $color-border;
+  margin: $spacing-md 0;
+}
+
+.allocationHighlight {
+  display: flex;
+  align-items: center;
+  background: $color-primary-bg;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin: $spacing-md 0;
+  border: 2rpx solid rgba($color-primary, 0.15);
+}
+
+.allocationIcon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-round;
+  background: $color-bg-card;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: $spacing-md;
+}
+
+.allocationDetails {
+  flex: 1;
+}
+
+.allocationLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.allocationChair {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.allocationReasonBadge {
+  background: $color-primary;
+  padding: 8rpx 20rpx;
+  border-radius: $radius-round;
+}
+
+.reasonText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-medium;
+}
+
+.chairStats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin: $spacing-md 0;
+}
+
+.chairStatItem {
+  flex: 1;
+  text-align: center;
+}
+
+.chairStatValue {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.chairStatLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.chairStatDivider {
+  width: 2rpx;
+  height: 60rpx;
+  background: $color-border;
+}
+
+.reasonRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed $color-border;
+}
+
+.reasonLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.reasonDesc {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  text-align: right;
+}
+
+.actionButtons {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.actionBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.actionBtnSecondary {
+  background: $color-bg-card;
+  border: 2rpx solid $color-primary;
+}
+
+.actionBtnSecondaryText {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.actionBtnPrimary {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+}
+
+.actionBtnPrimaryText {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.tipsCard {
+  background: $color-warning-bg;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  border-left: 8rpx solid $color-warning;
+}
+
+.tipsTitle {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
+  margin-bottom: $spacing-sm;
+}
+
+.tipsContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.7;
+}

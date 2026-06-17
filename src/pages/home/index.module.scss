@@ -64,6 +64,40 @@
   gap: $spacing-md;
 }
 
+.chairWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.callBtn {
+  background: $color-bg-card;
+  border: 2rpx solid $color-primary;
+  border-radius: $radius-md;
+  padding: 16rpx 0;
+  text-align: center;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.98);
+    background: rgba($color-primary, 0.05);
+  }
+}
+
+.callBtnActive {
+  background: $color-primary;
+
+  .callBtnText {
+    color: $color-text-white;
+  }
+}
+
+.callBtnText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+}
+
 .takeNumberBtn {
   @include button-reset;
   position: fixed;

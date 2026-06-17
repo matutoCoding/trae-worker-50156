@@ -9,9 +9,17 @@ import { useQueueStore } from '@/store/useQueueStore';
 import dayjs from 'dayjs';
 
 const HomePage: React.FC = () => {
-  const { chairs, fetchChairs } = useChairStore();
-  const { myNumber, getWaitingCount, getMyPosition, queueInfo } = useQueueStore();
+  const { chairs, fetchChairs, getChairById } = useChairStore();
+  const {
+    myNumber,
+    getWaitingCount,
+    getMyPosition,
+    getMyChairInfo,
+    queueInfo,
+    callNextByChair
+  } = useQueueStore();
   const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm'));
+  const [callingChairId, setCallingChairId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchChairs();
@@ -33,6 +41,30 @@ const HomePage: React.FC = () => {
     });
   };
 
+  const handleCallNext = (chairId: string, chairName: string) => {
+    console.log(`[Home] 牙椅 ${chairName} 叫号`);
+    setCallingChairId(chairId);
+
+    const result = callNextByChair(chairId);
+
+    if (result) {
+      Taro.showToast({
+        title: `${chairName} 叫号: ${result.number}号`,
+        icon: 'none',
+        duration: 2500
+      });
+      console.log(`[Home] 叫号成功: ${result.number} ${result.name}`);
+    } else {
+      Taro.showToast({
+        title: `${chairName} 暂无等待患者`,
+        icon: 'none'
+      });
+      console.log(`[Home] 牙椅 ${chairName} 无等待患者`);
+    }
+
+    setTimeout(() => setCallingChairId(null), 800);
+  };
+
   const onPullDownRefresh = () => {
     fetchChairs();
     setTimeout(() => {
@@ -50,6 +82,7 @@ const HomePage: React.FC = () => {
 
   const waitingCount = getWaitingCount();
   const myPosition = getMyPosition();
+  const myChairInfo = getMyChairInfo();
 
   return (
     <ScrollView scrollY className={styles.page}>
@@ -66,6 +99,8 @@ const HomePage: React.FC = () => {
           position={myPosition}
           totalWaiting={queueInfo.totalWaiting}
           avgWaitTime={queueInfo.avgWaitTime}
+          assignedChairName={myChairInfo?.chairName}
+          chairPosition={myChairInfo?.chairPosition}
           onTakeNumber={handleTakeNumber}
         />
       </View>
@@ -80,11 +115,25 @@ const HomePage: React.FC = () => {
 
         <View className={styles.chairGrid}>
           {chairs.map(chair => (
-            <ChairCard
-              key={chair.id}
-              chair={chair}
-              onClick={() => handleChairClick(chair.id)}
-            />
+            <View key={chair.id} className={styles.chairWrapper}>
+              <ChairCard
+                chair={chair}
+                onClick={() => handleChairClick(chair.id)}
+              />
+              <View
+                className={`${styles.callBtn} ${callingChairId === chair.id ? styles.callBtnActive : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation?.();
+                  if (chair.status !== 'offline' && chair.status !== 'maintenance') {
+                    handleCallNext(chair.id, chair.name);
+                  }
+                }}
+              >
+                <Text className={styles.callBtnText}>
+                  {chair.status === 'offline' || chair.status === 'maintenance' ? '停用中' : '叫下一位'}
+                </Text>
+              </View>
+            </View>
           ))}
         </View>
       </View>

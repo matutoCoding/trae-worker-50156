@@ -54,6 +54,34 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.chairInfo {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-md;
+  padding: 16rpx 20rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.chairBadge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 6rpx 16rpx;
+  border-radius: $radius-round;
+  margin-right: $spacing-md;
+}
+
+.chairBadgeText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+}
+
+.chairName {
+  flex: 1;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+}
+
 .statusRow {
   display: flex;
   gap: $spacing-lg;

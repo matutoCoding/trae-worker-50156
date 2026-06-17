@@ -12,6 +12,9 @@ interface ChairState {
   updateChairStatus: (id: string, status: Chair['status']) => void;
   incrementWaitCount: (id: string) => void;
   decrementWaitCount: (id: string) => void;
+  setCurrentPatient: (id: string, patientName: string, patientNumber: number) => void;
+  incrementTodayTotal: (id: string) => void;
+  clearCurrentPatient: (id: string) => void;
 }
 
 export const useChairStore = create<ChairState>((set, get) => ({
@@ -48,10 +51,12 @@ export const useChairStore = create<ChairState>((set, get) => ({
       chairs: state.chairs.map(chair => {
         if (chair.id === id) {
           const newWaitCount = chair.waitCount + 1;
+          const newStatus: Chair['status'] = chair.status === 'idle' ? 'busy' : chair.status;
           return {
             ...chair,
             waitCount: newWaitCount,
-            loadRate: calculateLoadRate(newWaitCount)
+            loadRate: calculateLoadRate(newWaitCount),
+            status: newStatus
           };
         }
         return chair;
@@ -67,11 +72,58 @@ export const useChairStore = create<ChairState>((set, get) => ({
           return {
             ...chair,
             waitCount: newWaitCount,
-            loadRate: calculateLoadRate(newWaitCount)
+            loadRate: calculateLoadRate(newWaitCount),
+            status: newWaitCount === 0 && !chair.currentPatient ? 'idle' : chair.status
           };
         }
         return chair;
       })
+    }));
+  },
+
+  setCurrentPatient: (id: string, patientName: string, patientNumber: number) => {
+    console.log(`[ChairStore] 牙椅 ${id} 当前患者: ${patientName} #${patientNumber}`);
+    set(state => ({
+      chairs: state.chairs.map(chair =>
+        chair.id === id
+          ? {
+              ...chair,
+              status: 'busy',
+              currentPatient: patientName,
+              currentNumber: patientNumber
+            }
+          : chair
+      )
+    }));
+  },
+
+  clearCurrentPatient: (id: string) => {
+    set(state => ({
+      chairs: state.chairs.map(chair => {
+        if (chair.id === id) {
+          const newWaitCount = chair.waitCount;
+          return {
+            ...chair,
+            currentPatient: undefined,
+            currentNumber: undefined,
+            status: newWaitCount === 0 ? 'idle' : 'busy'
+          };
+        }
+        return chair;
+      })
+    }));
+  },
+
+  incrementTodayTotal: (id: string) => {
+    set(state => ({
+      chairs: state.chairs.map(chair =>
+        chair.id === id
+          ? {
+              ...chair,
+              todayTotal: chair.todayTotal + 1
+            }
+          : chair
+      )
     }));
   }
 }));

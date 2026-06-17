@@ -307,3 +307,157 @@
   font-size: $font-size-xs;
   color: $color-text-tertiary;
 }
+
+.currentPatientCard {
+  display: flex;
+  align-items: center;
+  margin: -40rpx $page-padding $spacing-lg;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, $color-primary-bg 0%, $color-bg-card 100%);
+  border-radius: $radius-xl;
+  border: 2rpx solid rgba($color-primary, 0.2);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 20;
+}
+
+.currentPatientIcon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-round;
+  background: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.currentPatientInfo {
+  flex: 1;
+}
+
+.currentPatientLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.currentPatientDetail {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.completeBtn {
+  background: $color-success;
+  padding: 16rpx 32rpx;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.completeBtnText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.actionRow {
+  padding: 0 $page-padding $spacing-lg;
+}
+
+.callBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  gap: $spacing-sm;
+  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &.callBtnDisabled {
+    background: $color-text-disabled;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  &.callBtnActive {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+}
+
+.callBtnIcon {
+  font-size: 40rpx;
+}
+
+.callBtnText {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+}
+
+.queueHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.queueCount {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background: $color-primary-bg;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+}
+
+.queueNumberNext {
+  background: $color-success-bg;
+
+  .queueNumberText {
+    color: $color-success;
+  }
+}
+
+.queuePositionWrap {
+  flex-shrink: 0;
+}
+
+.queuePosition {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+
+  &.queuePositionFirst {
+    background: $color-primary;
+    color: $color-text-white;
+    padding: 8rpx 20rpx;
+    border-radius: $radius-round;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.queueMore {
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed $color-border;
+  text-align: center;
+}
+
+.queueMoreText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}

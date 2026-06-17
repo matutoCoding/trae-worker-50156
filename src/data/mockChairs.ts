@@ -29,9 +29,9 @@ export const mockChairs: Chair[] = [
     id: 'chair-003',
     name: '3号牙椅',
     number: 3,
-    status: 'idle',
-    waitCount: 0,
-    loadRate: 0,
+    status: 'busy',
+    waitCount: 1,
+    loadRate: 10,
     todayTotal: 6,
     department: '口腔科'
   },
@@ -42,8 +42,8 @@ export const mockChairs: Chair[] = [
     status: 'busy',
     currentPatient: '王芳',
     currentNumber: 1031,
-    waitCount: 2,
-    loadRate: 60,
+    waitCount: 1,
+    loadRate: 10,
     todayTotal: 10,
     department: '口腔科'
   },

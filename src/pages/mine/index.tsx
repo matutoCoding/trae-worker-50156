@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 import { useUserStore } from '@/store/useUserStore';
-import { mockAppointments } from '@/data/mockAppointments';
+import { useAppointmentStore } from '@/store/useAppointmentStore';
 import { getStatusText } from '@/utils/format';
 
 const MinePage: React.FC = () => {
   const { userInfo, logout } = useUserStore();
+  const { getMyAppointments } = useAppointmentStore();
+
+  const myAppointments = useMemo(() => getMyAppointments(), [getMyAppointments]);
 
   const handleAppointmentClick = (id: string) => {
     Taro.navigateTo({
@@ -33,7 +36,10 @@ const MinePage: React.FC = () => {
     Taro.showToast({ title: `${menu}功能开发中`, icon: 'none' });
   };
 
-  const recentAppointments = mockAppointments.slice(0, 3);
+  const recentAppointments = myAppointments.slice(0, 5);
+
+  const pendingCount = myAppointments.filter(a => a.status === 'pending' || a.status === 'confirmed').length;
+  const completedCount = myAppointments.filter(a => a.status === 'completed').length;
 
   const getStatusClass = (status: string) => {
     const map: Record<string, string> = {
@@ -55,23 +61,23 @@ const MinePage: React.FC = () => {
             mode="aspectFill"
           />
           <View className={styles.userInfo}>
-            <Text className={styles.userName}>{userInfo?.name || '未登录'}</Text>
-            <Text className={styles.userPhone}>{userInfo?.phone || '点击登录'}</Text>
+            <Text className={styles.userName}>{userInfo?.name || '张小明'}</Text>
+            <Text className={styles.userPhone}>{userInfo?.phone || '138****0000'}</Text>
           </View>
         </View>
       </View>
 
       <View className={styles.statsCard}>
         <View className={styles.statsItem}>
-          <Text className={styles.statsNum}>{mockAppointments.length}</Text>
+          <Text className={styles.statsNum}>{myAppointments.length}</Text>
           <Text className={styles.statsLabel}>预约</Text>
         </View>
         <View className={styles.statsItem}>
-          <Text className={styles.statsNum}>5</Text>
+          <Text className={styles.statsNum}>{completedCount}</Text>
           <Text className={styles.statsLabel}>就诊</Text>
         </View>
         <View className={styles.statsItem}>
-          <Text className={styles.statsNum}>3</Text>
+          <Text className={styles.statsNum}>{pendingCount}</Text>
           <Text className={styles.statsLabel}>待就诊</Text>
         </View>
       </View>
@@ -86,6 +92,9 @@ const MinePage: React.FC = () => {
             <Text>📅</Text>
           </View>
           <Text className={styles.menuText}>我的预约</Text>
+          <View className={styles.menuBadge}>
+            <Text className={styles.menuBadgeText}>{pendingCount}</Text>
+          </View>
           <Text className={styles.menuArrow}>{'>'}</Text>
         </View>
         <View
@@ -100,7 +109,7 @@ const MinePage: React.FC = () => {
         </View>
         <View
           className={styles.menuItem}
-          onClick={() => handleMenuClick('我的排队')}
+          onClick={() => Taro.switchTab({ url: '/pages/home/index' })}
         >
           <View className={`${styles.menuIcon} ${styles.iconQueue}`}>
             <Text>🔢</Text>
@@ -152,6 +161,12 @@ const MinePage: React.FC = () => {
           </Text>
         </View>
 
+        {recentAppointments.length === 0 && (
+          <View className={styles.emptyTip}>
+            <Text className={styles.emptyTipText}>暂无预约记录，快去预约吧~</Text>
+          </View>
+        )}
+
         {recentAppointments.map(appt => (
           <View
             key={appt.id}
@@ -159,7 +174,7 @@ const MinePage: React.FC = () => {
             onClick={() => handleAppointmentClick(appt.id)}
           >
             <View className={styles.apptHeader}>
-              <Text className={styles.apptType}>{appt.type}</Text>
+              <Text className={styles.apptType}>{appt.type || appt.department}</Text>
               <Text className={classnames(styles.apptStatus, styles[getStatusClass(appt.status)])}>
                 {getStatusText(appt.status)}
               </Text>
@@ -169,7 +184,7 @@ const MinePage: React.FC = () => {
                 <Text className={styles.apptTime}>
                   {appt.date} {appt.startTime} - {appt.endTime}
                 </Text>
-                <Text className={styles.apptChair}>{appt.chairName}</Text>
+                <Text className={styles.apptChair}>{appt.chairName || '系统分配中'}</Text>
               </View>
               {appt.doctorName && (
                 <View className={styles.apptDoctor}>

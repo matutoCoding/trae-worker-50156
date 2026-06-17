@@ -43,6 +43,7 @@ export const mockQueue: Patient[] = [
     phone: '136****6666',
     number: 1035,
     status: 'waiting',
+    chairId: 'chair-001',
     department: '口腔科',
     estimatedTime: '10:30',
     takeTime: '10:00'
@@ -53,6 +54,7 @@ export const mockQueue: Patient[] = [
     phone: '135****5555',
     number: 1036,
     status: 'waiting',
+    chairId: 'chair-002',
     department: '口腔科',
     estimatedTime: '10:45',
     takeTime: '10:05'
@@ -63,6 +65,7 @@ export const mockQueue: Patient[] = [
     phone: '134****4444',
     number: 1037,
     status: 'waiting',
+    chairId: 'chair-001',
     department: '口腔科',
     estimatedTime: '11:00',
     takeTime: '10:10'
@@ -73,6 +76,7 @@ export const mockQueue: Patient[] = [
     phone: '133****3333',
     number: 1038,
     status: 'waiting',
+    chairId: 'chair-003',
     department: '口腔科',
     estimatedTime: '11:15',
     takeTime: '10:15'
@@ -83,6 +87,7 @@ export const mockQueue: Patient[] = [
     phone: '132****2222',
     number: 1039,
     status: 'waiting',
+    chairId: 'chair-004',
     department: '口腔科',
     estimatedTime: '11:30',
     takeTime: '10:20'
@@ -93,6 +98,7 @@ export const mockQueue: Patient[] = [
     phone: '131****1111',
     number: 1040,
     status: 'waiting',
+    chairId: 'chair-001',
     department: '口腔科',
     estimatedTime: '11:45',
     takeTime: '10:25'
@@ -106,8 +112,8 @@ export const mockQueueInfo: QueueInfo = {
   chairs: [
     { chairId: 'chair-001', chairName: '1号牙椅', currentNumber: 1024, waitCount: 3 },
     { chairId: 'chair-002', chairName: '2号牙椅', currentNumber: 1018, waitCount: 1 },
-    { chairId: 'chair-003', chairName: '3号牙椅', currentNumber: 0, waitCount: 0 },
-    { chairId: 'chair-004', chairName: '4号牙椅', currentNumber: 1031, waitCount: 2 },
+    { chairId: 'chair-003', chairName: '3号牙椅', currentNumber: 0, waitCount: 1 },
+    { chairId: 'chair-004', chairName: '4号牙椅', currentNumber: 1031, waitCount: 1 },
     { chairId: 'chair-005', chairName: '5号牙椅', currentNumber: 0, waitCount: 0 },
     { chairId: 'chair-006', chairName: '6号牙椅', currentNumber: 0, waitCount: 0 }
   ]

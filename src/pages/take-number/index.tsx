@@ -6,6 +6,7 @@ import styles from './index.module.scss';
 import { useChairStore } from '@/store/useChairStore';
 import { useQueueStore } from '@/store/useQueueStore';
 import { findBestChair } from '@/utils/loadBalancer';
+import type { Patient } from '@/types/patient';
 
 const departments = [
   { id: 'general', name: '口腔综合', desc: '常规检查、补牙等' },
@@ -16,14 +17,25 @@ const departments = [
   { id: 'pediatrics', name: '儿童口腔', desc: '儿童齿科、预防保健' }
 ];
 
+interface TakeResult {
+  patient: Patient;
+  allocation: {
+    chairId: string;
+    chairName: string;
+    estimatedWaitTime: number;
+    reason: string;
+  } | null;
+}
+
 const TakeNumberPage: React.FC = () => {
-  const { chairs } = useChairStore();
-  const { takeNumber } = useQueueStore();
+  const { chairs, getChairById } = useChairStore();
+  const { takeNumber, getWaitingByChair } = useQueueStore();
 
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [selectedDept, setSelectedDept] = useState('general');
   const [allocation, setAllocation] = useState<ReturnType<typeof findBestChair>>(null);
+  const [takeResult, setTakeResult] = useState<TakeResult | null>(null);
 
   useEffect(() => {
     const result = findBestChair(chairs);
@@ -45,24 +57,133 @@ const TakeNumberPage: React.FC = () => {
       content: `确认挂${departments.find(d => d.id === selectedDept)?.name}的号吗？`,
       success: (res) => {
         if (res.confirm) {
-          const newPatient = takeNumber({
+          const result = takeNumber({
             name: patientName,
             phone: patientPhone,
             department: departments.find(d => d.id === selectedDept)?.name || '口腔科'
           });
 
-          Taro.showToast({
-            title: '取号成功',
-            icon: 'success'
-          });
-
-          setTimeout(() => {
-            Taro.navigateBack();
-          }, 1500);
+          console.log('[TakeNumber] 取号结果:', result);
+          setTakeResult(result);
         }
       }
     });
   };
+
+  const handleBackHome = () => {
+    Taro.switchTab({
+      url: '/pages/home/index'
+    });
+  };
+
+  const handleViewChair = () => {
+    if (takeResult?.allocation) {
+      Taro.navigateTo({
+        url: `/pages/chair-detail/index?id=${takeResult.allocation.chairId}`
+      });
+    }
+  };
+
+  if (takeResult) {
+    const chairQueue = takeResult.allocation
+      ? getWaitingByChair(takeResult.allocation.chairId)
+      : [];
+    const myIndex = chairQueue.findIndex(p => p.id === takeResult.patient.id);
+    const chair = takeResult.allocation ? getChairById(takeResult.allocation.chairId) : undefined;
+
+    return (
+      <View className={styles.page}>
+        <View className={styles.successContainer}>
+          <View className={styles.successIcon}>✓</View>
+          <Text className={styles.successTitle}>取号成功</Text>
+          <Text className={styles.successSubtitle}>系统已为您智能分配最优牙椅</Text>
+
+          <View className={styles.resultCard}>
+            <View className={styles.resultRow}>
+              <Text className={styles.resultLabel}>我的号码</Text>
+              <Text className={styles.resultNumber}>#{takeResult.patient.number}</Text>
+            </View>
+            <View className={styles.resultRow}>
+              <Text className={styles.resultLabel}>姓名</Text>
+              <Text className={styles.resultValue}>{takeResult.patient.name}</Text>
+            </View>
+            <View className={styles.resultRow}>
+              <Text className={styles.resultLabel}>科室</Text>
+              <Text className={styles.resultValue}>{takeResult.patient.department}</Text>
+            </View>
+            <View className={styles.resultDivider} />
+
+            {takeResult.allocation && (
+              <>
+                <View className={styles.allocationHighlight}>
+                  <View className={styles.allocationIcon}>🎯</View>
+                  <View className={styles.allocationDetails}>
+                    <Text className={styles.allocationLabel}>分配牙椅</Text>
+                    <Text className={styles.allocationChair}>{takeResult.allocation.chairName}</Text>
+                  </View>
+                  <View className={styles.allocationReasonBadge}>
+                    <Text className={styles.reasonText}>智能分配</Text>
+                  </View>
+                </View>
+
+                <View className={styles.chairStats}>
+                  <View className={styles.chairStatItem}>
+                    <Text className={styles.chairStatValue}>
+                      {chair?.waitCount ?? '--'}
+                    </Text>
+                    <Text className={styles.chairStatLabel}>该牙椅等待</Text>
+                  </View>
+                  <View className={styles.chairStatDivider} />
+                  <View className={styles.chairStatItem}>
+                    <Text className={styles.chairStatValue}>
+                      {myIndex === -1 ? '即将' : `${myIndex + 1}`}
+                    </Text>
+                    <Text className={styles.chairStatLabel}>您的位次</Text>
+                  </View>
+                  <View className={styles.chairStatDivider} />
+                  <View className={styles.chairStatItem}>
+                    <Text className={styles.chairStatValue}>
+                      {takeResult.allocation.estimatedWaitTime === 0
+                        ? '即到'
+                        : `≈${takeResult.allocation.estimatedWaitTime}分`}
+                    </Text>
+                    <Text className={styles.chairStatLabel}>预计等待</Text>
+                  </View>
+                </View>
+
+                <View className={styles.reasonRow}>
+                  <Text className={styles.reasonLabel}>分配策略</Text>
+                  <Text className={styles.reasonDesc}>{takeResult.allocation.reason}</Text>
+                </View>
+              </>
+            )}
+          </View>
+
+          <View className={styles.actionButtons}>
+            <View
+              className={`${styles.actionBtn} ${styles.actionBtnSecondary}`}
+              onClick={handleViewChair}
+            >
+              <Text className={styles.actionBtnSecondaryText}>查看牙椅详情</Text>
+            </View>
+            <View
+              className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+              onClick={handleBackHome}
+            >
+              <Text className={styles.actionBtnPrimaryText}>返回首页</Text>
+            </View>
+          </View>
+
+          <View className={styles.tipsCard}>
+            <Text className={styles.tipsTitle}>温馨提示</Text>
+            <Text className={styles.tipsContent}>
+              请留意广播叫号，也可点击"查看牙椅详情"实时了解排队进度。如长时间未叫号，请咨询前台工作人员。
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className={styles.page}>
