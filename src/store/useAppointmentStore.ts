@@ -38,18 +38,14 @@ interface AppointmentState {
 }
 
 export const useAppointmentStore = create<AppointmentState>((set, get) => ({
-  appointments: mockAppointments,
+  appointments: [...mockAppointments],
   scheduleDays: mockScheduleDays,
   selectedDate: null,
   selectedSlot: null,
   newAppointmentIds: [],
 
   fetchAppointments: () => {
-    console.log('[AppointmentStore] 获取预约列表');
-    set({ loading: true });
-    setTimeout(() => {
-      set({ loading: false });
-    }, 300);
+    console.log('[AppointmentStore] 获取预约列表（不重置，保持现有状态）');
   },
 
   fetchScheduleDays: () => {
@@ -67,20 +63,35 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   getSlotsForDate: (date: string) => {
     const chairState = useChairStore.getState();
     const chairs = chairState.chairs;
-    const dayAppointments = get().appointments.filter(a => a.date === date);
+    const dayAppointments = get().appointments.filter(
+      a => a.date === date && a.status !== 'cancelled'
+    );
+
+    const availableChairIds = chairs
+      .filter(c => c.status !== 'offline' && c.status !== 'maintenance')
+      .map(c => c.id);
+    const totalCapacity = availableChairIds.length;
 
     const baseSlots = generateTimeSlots();
     return baseSlots.map(slot => {
-      const slotAppointments = dayAppointments.filter(a => a.startTime === slot.time);
-      const totalCapacity = chairs.filter(c => c.status !== 'offline' && c.status !== 'maintenance').length;
-      const booked = slotAppointments.length;
-      const available = Math.max(0, totalCapacity - booked);
+      const bookedChairIds: string[] = [];
+      dayAppointments.forEach(a => {
+        if (a.startTime === slot.time && !bookedChairIds.includes(a.chairId)) {
+          bookedChairIds.push(a.chairId);
+        }
+      });
+
+      const booked = bookedChairIds.length;
+      const remaining = Math.max(0, totalCapacity - booked);
 
       return {
         ...slot,
-        availableCount: available,
-        totalCount: totalCapacity,
-        isAvailable: available > 0
+        available: remaining > 0,
+        availableChairs: remaining,
+        totalChairs: totalCapacity,
+        isAvailable: remaining > 0,
+        availableCount: remaining,
+        totalCount: totalCapacity
       } as ScheduleTimeSlot;
     });
   },
@@ -115,7 +126,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
     const allocation = get().findBestAllocation(info.date, info.slot);
     if (!allocation) {
-      console.log('[AppointmentStore] 无可用牙椅');
+      console.log('[AppointmentStore] 无可用牙椅 - 分配失败');
       return null;
     }
 
@@ -147,7 +158,13 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       newAppointmentIds: [...state.newAppointmentIds, newAppointment.id]
     }));
 
-    console.log('[AppointmentStore] 预约创建成功:', newAppointment);
+    console.log('[AppointmentStore] 预约创建成功:', {
+      id: newAppointment.id,
+      date: newAppointment.date,
+      time: newAppointment.startTime,
+      chair: newAppointment.chairName,
+      allocation: allocation.reason
+    });
 
     return {
       appointment: newAppointment,

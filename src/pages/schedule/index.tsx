@@ -20,7 +20,8 @@ const SchedulePage: React.FC = () => {
     fetchAppointments,
     getSlotsForDate,
     findBestAllocation,
-    createAppointment
+    createAppointment,
+    appointments
   } = useAppointmentStore();
 
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
@@ -38,7 +39,7 @@ const SchedulePage: React.FC = () => {
 
   const actualSlots = useMemo(() => {
     return getSlotsForDate(dateKey);
-  }, [dateKey, getSlotsForDate]);
+  }, [dateKey, getSlotsForDate, appointments, chairs]);
 
   const chairTimeSlots = useMemo(() => {
     return chairs.map(chair => ({
@@ -50,7 +51,7 @@ const SchedulePage: React.FC = () => {
   const allocatedResult = useMemo(() => {
     if (!selectedSlot) return null;
     return findBestAllocation(dateKey, selectedSlot);
-  }, [dateKey, selectedSlot, findBestAllocation]);
+  }, [dateKey, selectedSlot, findBestAllocation, appointments, chairs]);
 
   const allocatedChair = useMemo(() => {
     if (!allocatedResult) return null;
@@ -72,7 +73,13 @@ const SchedulePage: React.FC = () => {
   };
 
   const handleSlotSelect = (slot: ScheduleTimeSlot) => {
-    if (!slot.isAvailable) {
+    const isSlotAvailable =
+      slot.available === true ||
+      slot.isAvailable === true ||
+      slot.availableChairs > 0 ||
+      (slot.availableCount ?? 0) > 0;
+
+    if (!isSlotAvailable) {
       Taro.showToast({ title: '该时段已约满', icon: 'none' });
       return;
     }

@@ -30,8 +30,10 @@ export const mockChairs: Chair[] = [
     name: '3号牙椅',
     number: 3,
     status: 'busy',
+    currentPatient: '郑伟',
+    currentNumber: 1029,
     waitCount: 1,
-    loadRate: 10,
+    loadRate: 25,
     todayTotal: 6,
     department: '口腔科'
   },

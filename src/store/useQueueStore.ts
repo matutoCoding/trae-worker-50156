@@ -18,6 +18,7 @@ interface QueueState {
   completeVisit: (patientId: string) => void;
   getWaitingCount: () => number;
   getWaitingByChair: (chairId: string) => Patient[];
+  getCurrentVisitingPatient: (chairId: string) => Patient | null;
   getMyChairInfo: () => { chairName: string; chairPosition: number } | null;
   getMyPosition: () => number;
 }
@@ -29,10 +30,10 @@ export const useQueueStore = create<QueueState>((set, get) => ({
   loading: false,
 
   fetchQueue: () => {
-    console.log('[QueueStore] 获取排队信息');
+    console.log('[QueueStore] 刷新排队信息（不重置状态，保持现有数据）');
     set({ loading: true });
     setTimeout(() => {
-      set({ loading: false });
+      set(state => ({ loading: false, patients: state.patients }));
     }, 300);
   },
 
@@ -149,18 +150,32 @@ export const useQueueStore = create<QueueState>((set, get) => ({
   },
 
   completeVisit: (patientId: string) => {
-    console.log(`[QueueStore] 完成就诊: ${patientId}`);
+    console.log(`[QueueStore] 完成就诊: ${patientId}（只结束当前患者，不推进队列）`);
     const patient = get().patients.find(p => p.id === patientId);
+    if (!patient) return;
+
+    const chairId = patient.chairId;
+    const chairState = useChairStore.getState();
+    const chair = chairId ? chairState.getChairById(chairId) : undefined;
 
     set(state => ({
       patients: state.patients.map(p =>
         p.id === patientId ? { ...p, status: 'completed' } : p
-      )
+      ),
+      queueInfo: {
+        ...state.queueInfo,
+        totalCompleted: (state.queueInfo.totalCompleted || 0) + 1,
+        chairs: state.queueInfo.chairs.map(c =>
+          c.chairId === chairId
+            ? { ...c, currentNumber: undefined }
+            : c
+        )
+      }
     }));
 
-    if (patient?.chairId) {
-      const chairState = useChairStore.getState();
-      chairState.incrementTodayTotal(patient.chairId);
+    if (chairId && chair) {
+      chairState.incrementTodayTotal(chairId);
+      chairState.clearCurrentPatient(chairId);
     }
   },
 
@@ -173,6 +188,12 @@ export const useQueueStore = create<QueueState>((set, get) => ({
       .patients
       .filter(p => p.chairId === chairId && p.status === 'waiting')
       .sort((a, b) => a.number - b.number);
+  },
+
+  getCurrentVisitingPatient: (chairId: string) => {
+    return get()
+      .patients
+      .find(p => p.chairId === chairId && p.status === 'visiting') || null;
   },
 
   getMyChairInfo: () => {

@@ -102,6 +102,18 @@ export const mockQueue: Patient[] = [
     department: '口腔科',
     estimatedTime: '11:45',
     takeTime: '10:25'
+  },
+  {
+    id: 'patient-010',
+    name: '郑伟',
+    phone: '130****0000',
+    number: 1029,
+    status: 'visiting',
+    chairId: 'chair-003',
+    department: '口腔科',
+    doctorId: 'doctor-003',
+    takeTime: '09:40',
+    callTime: '10:00'
   }
 ];
 
@@ -112,7 +124,7 @@ export const mockQueueInfo: QueueInfo = {
   chairs: [
     { chairId: 'chair-001', chairName: '1号牙椅', currentNumber: 1024, waitCount: 3 },
     { chairId: 'chair-002', chairName: '2号牙椅', currentNumber: 1018, waitCount: 1 },
-    { chairId: 'chair-003', chairName: '3号牙椅', currentNumber: 0, waitCount: 1 },
+    { chairId: 'chair-003', chairName: '3号牙椅', currentNumber: 1029, waitCount: 1 },
     { chairId: 'chair-004', chairName: '4号牙椅', currentNumber: 1031, waitCount: 1 },
     { chairId: 'chair-005', chairName: '5号牙椅', currentNumber: 0, waitCount: 0 },
     { chairId: 'chair-006', chairName: '6号牙椅', currentNumber: 0, waitCount: 0 }

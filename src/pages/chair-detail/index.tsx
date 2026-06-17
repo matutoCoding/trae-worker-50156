@@ -15,8 +15,14 @@ import type { TimeSlot } from '@/types/chair';
 
 const ChairDetailPage: React.FC = () => {
   const router = useRouter();
-  const { getChairById, chairs, clearCurrentPatient } = useChairStore();
-  const { getWaitingByChair, callNextByChair, completeVisit } = useQueueStore();
+  const { getChairById, chairs } = useChairStore();
+  const {
+    getWaitingByChair,
+    callNextByChair,
+    completeVisit,
+    getCurrentVisitingPatient,
+    patients
+  } = useQueueStore();
 
   const [chair, setChair] = useState<Chair | null>(null);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
@@ -50,7 +56,12 @@ const ChairDetailPage: React.FC = () => {
   const waitingPatients = useMemo(() => {
     if (!chairId) return [];
     return getWaitingByChair(chairId);
-  }, [chairId, getWaitingByChair, chairs]);
+  }, [chairId, getWaitingByChair, chairs, patients]);
+
+  const visitingPatient = useMemo(() => {
+    if (!chairId) return null;
+    return getCurrentVisitingPatient(chairId);
+  }, [chairId, getCurrentVisitingPatient, patients]);
 
   const upcomingSlots = useMemo(() => {
     const now = new Date();
@@ -86,21 +97,25 @@ const ChairDetailPage: React.FC = () => {
 
   const handleCompleteVisit = () => {
     if (!chair) return;
-    if (!chair.currentPatient) {
+    if (!visitingPatient && !chair.currentPatient) {
       Taro.showToast({ title: '暂无就诊中患者', icon: 'none' });
       return;
     }
 
+    const patientId = visitingPatient?.id;
+    if (!patientId) {
+      Taro.showToast({ title: '未找到患者记录', icon: 'none' });
+      return;
+    }
+    const patientName = visitingPatient?.name || chair.currentPatient;
+    const patientNumber = visitingPatient?.number || chair.currentNumber;
+
     Taro.showModal({
       title: '完成就诊',
-      content: `确认 ${chair.currentNumber}号 ${chair.currentPatient} 就诊完成？`,
+      content: `确认 ${patientNumber}号 ${patientName} 就诊完成？\n\n完成后当前牙椅变为空闲，等待列表保持不变，需手动「叫下一位」。`,
       success: (res) => {
         if (res.confirm) {
-          const waiting = getWaitingByChair(chairId);
-          const currentPatient = waiting[0] || { id: `temp-${chairId}` };
-          completeVisit(currentPatient.id);
-          clearCurrentPatient(chairId);
-
+          completeVisit(patientId);
           Taro.showToast({
             title: '就诊完成',
             icon: 'success'

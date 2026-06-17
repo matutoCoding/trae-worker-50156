@@ -2,19 +2,22 @@ export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancell
 
 export interface Appointment {
   id: string;
+  code?: string;
   patientName: string;
   patientPhone: string;
   date: string;
   startTime: string;
   endTime: string;
+  duration?: number;
   chairId: string;
-  chairName: string;
+  chairName?: string;
   doctorId?: string;
   doctorName?: string;
   department: string;
   status: AppointmentStatus;
-  type: string;
-  createTime: string;
+  type?: string;
+  createTime?: string;
+  createdAt?: string;
 }
 
 export interface ScheduleDay {
@@ -30,4 +33,7 @@ export interface ScheduleTimeSlot {
   available: boolean;
   availableChairs: number;
   totalChairs: number;
+  isAvailable?: boolean;
+  availableCount?: number;
+  totalCount?: number;
 }

@@ -22,10 +22,10 @@ export const useChairStore = create<ChairState>((set, get) => ({
   loading: false,
 
   fetchChairs: () => {
-    console.log('[ChairStore] 获取牙椅列表');
+    console.log('[ChairStore] 刷新牙椅列表（不重置状态，保持现有数据）');
     set({ loading: true });
     setTimeout(() => {
-      set({ chairs: mockChairs, loading: false });
+      set(state => ({ loading: false, chairs: state.chairs }));
     }, 300);
   },
 

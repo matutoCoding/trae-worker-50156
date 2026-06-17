@@ -20,12 +20,17 @@ const generateTimeSlots = (): ScheduleTimeSlot[] => {
         time,
         available,
         availableChairs,
-        totalChairs: 6
+        totalChairs: 6,
+        isAvailable: available,
+        availableCount: availableChairs,
+        totalCount: 6
       });
     }
   }
   return slots;
 };
+
+export { generateTimeSlots };
 
 export const mockScheduleDays: ScheduleDay[] = Array.from({ length: 7 }, (_, i) => {
   const date = dayjs().add(i, 'day');

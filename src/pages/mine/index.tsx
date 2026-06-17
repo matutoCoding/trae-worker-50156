@@ -9,9 +9,12 @@ import { getStatusText } from '@/utils/format';
 
 const MinePage: React.FC = () => {
   const { userInfo, logout } = useUserStore();
-  const { getMyAppointments } = useAppointmentStore();
+  const { getMyAppointments, appointments } = useAppointmentStore();
 
-  const myAppointments = useMemo(() => getMyAppointments(), [getMyAppointments]);
+  const myAppointments = useMemo(
+    () => getMyAppointments(),
+    [getMyAppointments, appointments]
+  );
 
   const handleAppointmentClick = (id: string) => {
     Taro.navigateTo({
