@@ -1,5 +1,6 @@
 import type { Chair, TimeSlot } from '@/types/chair';
 import type { Appointment, ScheduleTimeSlot } from '@/types/appointment';
+import { hasAvailableDoctorForChair } from '@/utils/doctorRoster';
 
 export interface AllocationResult {
   chairId: string;
@@ -46,6 +47,19 @@ export const findBestSlot = (
     return null;
   }
 
+  const doctorChairs = validChairs.filter(chair => {
+    if (!hasAvailableDoctorForChair(chair.id, startTimeStr)) {
+      console.log(`[Scheduler] 排除 ${chair.name}: 该时段无在岗医生`);
+      return false;
+    }
+    return true;
+  });
+
+  if (doctorChairs.length === 0) {
+    console.log('[Scheduler] 无可用牙椅：该时段所有牙椅无在岗医生');
+    return null;
+  }
+
   const candidates: {
     chair: Chair;
     score: number;
@@ -54,7 +68,7 @@ export const findBestSlot = (
     adjacencyScore: number;
   }[] = [];
 
-  for (const chair of validChairs) {
+  for (const chair of doctorChairs) {
     const chairAppointments = dayAppointments.filter(
       a => a.chairId === chair.id && a.status !== 'cancelled'
     );
@@ -288,4 +302,110 @@ export const generateChairTimeSlots = (chairId: string, date: string): TimeSlot[
   }
 
   return slots;
+};
+
+export interface MergedTimeBlock {
+  id: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  status: string;
+  count: number;
+  slots: TimeSlot[];
+  patientName?: string;
+  patientNumber?: number;
+  appointment?: any;
+  label?: string;
+  subLabel?: string;
+}
+
+export const mergeAdjacentSlots = (slots: TimeSlot[]): MergedTimeBlock[] => {
+  if (slots.length === 0) return [];
+
+  const blocks: MergedTimeBlock[] = [];
+  let current: MergedTimeBlock | null = null;
+
+  const sameGroup = (a: TimeSlot, b: TimeSlot): boolean => {
+    const aStatus = a.status || (a.available ? 'available' : 'occupied');
+    const bStatus = b.status || (b.available ? 'available' : 'occupied');
+    if (aStatus !== bStatus) return false;
+    if (aStatus === 'occupied') {
+      const aId = a.appointment?.id;
+      const bId = b.appointment?.id;
+      if (aId || bId) return aId === bId;
+    }
+    if (aStatus === 'visiting' || aStatus === 'queued') {
+      const aNum = a.patientNumber;
+      const bNum = b.patientNumber;
+      if (aNum || bNum) return aNum === bNum;
+    }
+    return true;
+  };
+
+  for (const slot of slots) {
+    const slotStatus = slot.status || (slot.available ? 'available' : 'occupied');
+    if (!current) {
+      current = {
+        id: `block-${slot.startTime}`,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        durationMinutes: timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime),
+        status: slotStatus,
+        count: 1,
+        slots: [slot],
+        patientName: slot.patientName,
+        patientNumber: slot.patientNumber,
+        appointment: slot.appointment,
+        label: (slot as any).label,
+        subLabel: (slot as any).subLabel
+      };
+      continue;
+    }
+
+    if (sameGroup(current.slots[current.slots.length - 1], slot)) {
+      current.endTime = slot.endTime;
+      current.durationMinutes = timeToMinutes(current.endTime) - timeToMinutes(current.startTime);
+      current.count += 1;
+      current.slots.push(slot);
+    } else {
+      blocks.push(current);
+      current = {
+        id: `block-${slot.startTime}`,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        durationMinutes: timeToMinutes(slot.endTime) - timeToMinutes(slot.startTime),
+        status: slotStatus,
+        count: 1,
+        slots: [slot],
+        patientName: slot.patientName,
+        patientNumber: slot.patientNumber,
+        appointment: slot.appointment,
+        label: (slot as any).label,
+        subLabel: (slot as any).subLabel
+      };
+    }
+  }
+
+  if (current) blocks.push(current);
+  return blocks;
+};
+
+export const splitBlocksByPeriod = (
+  blocks: MergedTimeBlock[]
+): {
+  morning: MergedTimeBlock[];
+  afternoon: MergedTimeBlock[];
+} => {
+  const morning: MergedTimeBlock[] = [];
+  const afternoon: MergedTimeBlock[] = [];
+  const noon = 12 * 60;
+  const afternoonStart = 13 * 60 + 30;
+
+  blocks.forEach(block => {
+    const start = timeToMinutes(block.startTime);
+    if (start < noon) morning.push(block);
+    else if (start >= afternoonStart) afternoon.push(block);
+  });
+
+  return { morning, afternoon };
 };

@@ -8,7 +8,6 @@ import ScheduleTimeline from '@/components/ScheduleTimeline';
 import { mockScheduleDays } from '@/data/mockAppointments';
 import { useChairStore } from '@/store/useChairStore';
 import { useAppointmentStore } from '@/store/useAppointmentStore';
-import { generateChairTimeSlots } from '@/utils/scheduler';
 import type { ScheduleTimeSlot } from '@/types/appointment';
 import type { TimeSlot } from '@/types/chair';
 import dayjs from 'dayjs';
@@ -21,7 +20,8 @@ const SchedulePage: React.FC = () => {
     getSlotsForDate,
     findBestAllocation,
     createAppointment,
-    appointments
+    appointments,
+    getChairDaySchedule
   } = useAppointmentStore();
 
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
@@ -44,9 +44,9 @@ const SchedulePage: React.FC = () => {
   const chairTimeSlots = useMemo(() => {
     return chairs.map(chair => ({
       chairId: chair.id,
-      slots: generateChairTimeSlots(chair.id, dateKey)
+      slots: getChairDaySchedule(chair.id, dateKey)
     }));
-  }, [chairs, dateKey]);
+  }, [chairs, dateKey, getChairDaySchedule, appointments]);
 
   const allocatedResult = useMemo(() => {
     if (!selectedSlot) return null;

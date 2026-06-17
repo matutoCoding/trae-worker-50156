@@ -5,6 +5,7 @@ import type { TimeSlot } from '@/types/chair';
 import { mockAppointments, mockScheduleDays, generateTimeSlots } from '@/data/mockAppointments';
 import { useChairStore } from '@/store/useChairStore';
 import { findBestSlot, timeToMinutes, minutesToTime } from '@/utils/scheduler';
+import { getDoctorByChair, hasAvailableDoctorForChair, isDoctorOnDuty } from '@/utils/doctorRoster';
 import dayjs from 'dayjs';
 
 interface AppointmentState {
@@ -70,38 +71,37 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       a => a.date === date && a.status !== 'cancelled'
     );
 
-    const availableChairIds = chairs
-      .filter(c => c.status !== 'offline' && c.status !== 'maintenance')
-      .map(c => c.id);
-    const totalCapacity = availableChairIds.length;
+    const validChairs = chairs.filter(c => {
+      if (c.status === 'offline' || c.status === 'maintenance') return false;
+      return true;
+    });
 
     const baseSlots = generateTimeSlots();
     return baseSlots.map(slot => {
       const slotStart = timeToMinutes(slot.time);
       const slotEnd = slotStart + 30;
-      const bookedChairIds: string[] = [];
 
-      dayAppointments.forEach(a => {
-        const aStart = timeToMinutes(a.startTime);
-        const aEnd = timeToMinutes(a.endTime);
-        if (!(aEnd <= slotStart || aStart >= slotEnd)) {
-          if (!bookedChairIds.includes(a.chairId)) {
-            bookedChairIds.push(a.chairId);
-          }
-        }
+      const slotCapacity = validChairs.filter(chair => {
+        if (!hasAvailableDoctorForChair(chair.id, slot.time)) return false;
+        const booked = dayAppointments.find(a => {
+          const aStart = timeToMinutes(a.startTime);
+          const aEnd = timeToMinutes(a.endTime);
+          return a.chairId === chair.id && !(aEnd <= slotStart || aStart >= slotEnd);
+        });
+        return !booked;
       });
 
-      const booked = bookedChairIds.length;
-      const remaining = Math.max(0, totalCapacity - booked);
+      const total = validChairs.filter(c => hasAvailableDoctorForChair(c.id, slot.time)).length;
+      const remaining = slotCapacity.length;
 
       return {
         ...slot,
         available: remaining > 0,
         availableChairs: remaining,
-        totalChairs: totalCapacity,
+        totalChairs: total,
         isAvailable: remaining > 0,
         availableCount: remaining,
-        totalCount: totalCapacity
+        totalCount: total
       } as ScheduleTimeSlot;
     });
   },
@@ -137,7 +137,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         });
 
         let available = true;
-        let status: 'available' | 'occupied' | 'maintenance' | 'offline' = 'available';
+        let status: 'available' | 'occupied' | 'maintenance' | 'offline' | 'noDoctor' = 'available';
         let appointmentInfo: any = null;
 
         if (chair?.status === 'maintenance') {
@@ -145,6 +145,9 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
           available = false;
         } else if (chair?.status === 'offline') {
           status = 'offline';
+          available = false;
+        } else if (!hasAvailableDoctorForChair(chairId, startTime)) {
+          status = 'noDoctor';
           available = false;
         } else if (occupied) {
           status = 'occupied';
@@ -174,11 +177,10 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   getMyAppointments: () => {
     return get()
       .appointments
-      .filter(a => a.status !== 'cancelled')
       .sort((a, b) => {
-        const dateCompare = a.date.localeCompare(b.date);
+        const dateCompare = b.date.localeCompare(a.date);
         if (dateCompare !== 0) return dateCompare;
-        return a.startTime.localeCompare(b.startTime);
+        return b.startTime.localeCompare(a.startTime);
       });
   },
 

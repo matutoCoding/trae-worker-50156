@@ -7,6 +7,9 @@ export interface Chair {
   status: ChairStatus;
   currentPatient?: string;
   currentNumber?: number;
+  currentDoctorId?: string;
+  currentDoctorName?: string;
+  currentDoctorTitle?: string;
   waitCount: number;
   loadRate: number;
   todayTotal: number;
@@ -19,7 +22,7 @@ export interface TimeSlot {
   endTime: string;
   available: boolean;
   chairId?: string;
-  status?: 'available' | 'occupied' | 'maintenance' | 'offline' | 'visiting' | 'queued';
+  status?: 'available' | 'occupied' | 'maintenance' | 'offline' | 'visiting' | 'queued' | 'noDoctor';
   appointment?: any;
   patientName?: string;
   patientNumber?: number;

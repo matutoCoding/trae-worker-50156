@@ -8,7 +8,7 @@ import { useChairStore } from '@/store/useChairStore';
 import { useQueueStore } from '@/store/useQueueStore';
 import { useAppointmentStore } from '@/store/useAppointmentStore';
 import { getDoctorByChairId } from '@/data/mockDoctors';
-import { timeToMinutes, minutesToTime } from '@/utils/scheduler';
+import { timeToMinutes, minutesToTime, mergeAdjacentSlots, splitBlocksByPeriod, type MergedTimeBlock } from '@/utils/scheduler';
 import { getLoadLevel } from '@/utils/loadBalancer';
 import { getStatusText } from '@/utils/format';
 import type { Chair } from '@/types/chair';
@@ -29,6 +29,7 @@ const ChairDetailPage: React.FC = () => {
 
   const [chair, setChair] = useState<Chair | null>(null);
   const [isCalling, setIsCalling] = useState(false);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
   const chairId = router.params.id;
   const today = dayjs().format('YYYY-MM-DD');
@@ -140,6 +141,35 @@ const ChairDetailPage: React.FC = () => {
   }, [chairId, today, getChairDaySchedule, visitingPatient, waitingPatients, appointments]);
 
   const upcomingSlots = dayViewSlots;
+
+  const mergedBlocks = useMemo(() => mergeAdjacentSlots(dayViewSlots), [dayViewSlots]);
+  const { morning: morningBlocks, afternoon: afternoonBlocks } = useMemo(
+    () => splitBlocksByPeriod(mergedBlocks),
+    [mergedBlocks]
+  );
+
+  const selectedBlock = useMemo(
+    () => mergedBlocks.find(b => b.id === selectedBlockId) || null,
+    [mergedBlocks, selectedBlockId]
+  );
+
+  const formatBlockDuration = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0 && m > 0) return `${h}h${m}m`;
+    if (h > 0) return `${h}小时`;
+    return `${m}分钟`;
+  };
+
+  const blockStatusLabel: Record<string, string> = {
+    visiting: '正在就诊',
+    queued: '排队中',
+    occupied: '已预约',
+    maintenance: '维护中',
+    offline: '离线',
+    noDoctor: '无医生',
+    available: '空闲'
+  };
 
   const handleCallNext = () => {
     if (!chairId || !chair) return;
@@ -360,6 +390,142 @@ const ChairDetailPage: React.FC = () => {
         </View>
       )}
 
+      <View className={styles.overviewSection}>
+        <View className={styles.scheduleHeader}>
+          <Text className={styles.sectionTitle}>日程概览</Text>
+          <Text className={styles.overviewHint}>点击时间块查看详情</Text>
+        </View>
+
+        <View className={styles.periodGroup}>
+          <View className={styles.periodLabel}>
+            <Text className={styles.periodText}>上午</Text>
+            <Text className={styles.periodTime}>08:00 - 12:00</Text>
+          </View>
+          <View className={styles.blockRow}>
+            {morningBlocks.length === 0 ? (
+              <Text className={styles.periodEmpty}>无日程</Text>
+            ) : (
+              morningBlocks.map(block => {
+                const selected = selectedBlockId === block.id;
+                return (
+                  <View
+                    key={block.id}
+                    className={classnames(
+                      styles.timeBlock,
+                      styles[`block${block.status.charAt(0).toUpperCase()}${block.status.slice(1)}`],
+                      { [styles.timeBlockActive]: selected }
+                    )}
+                    style={{ flex: Math.max(block.count, 1) }}
+                    onClick={() => setSelectedBlockId(selected ? null : block.id)}
+                  >
+                    <Text className={styles.blockTime}>
+                      {block.startTime}-{block.endTime}
+                    </Text>
+                    <Text className={styles.blockLabel}>
+                      {block.label || blockStatusLabel[block.status] || block.status}
+                    </Text>
+                    <Text className={styles.blockDuration}>
+                      {formatBlockDuration(block.durationMinutes)}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
+          </View>
+        </View>
+
+        <View className={styles.periodGroup}>
+          <View className={styles.periodLabel}>
+            <Text className={styles.periodText}>下午</Text>
+            <Text className={styles.periodTime}>13:30 - 18:00</Text>
+          </View>
+          <View className={styles.blockRow}>
+            {afternoonBlocks.length === 0 ? (
+              <Text className={styles.periodEmpty}>无日程</Text>
+            ) : (
+              afternoonBlocks.map(block => {
+                const selected = selectedBlockId === block.id;
+                return (
+                  <View
+                    key={block.id}
+                    className={classnames(
+                      styles.timeBlock,
+                      styles[`block${block.status.charAt(0).toUpperCase()}${block.status.slice(1)}`],
+                      { [styles.timeBlockActive]: selected }
+                    )}
+                    style={{ flex: Math.max(block.count, 1) }}
+                    onClick={() => setSelectedBlockId(selected ? null : block.id)}
+                  >
+                    <Text className={styles.blockTime}>
+                      {block.startTime}-{block.endTime}
+                    </Text>
+                    <Text className={styles.blockLabel}>
+                      {block.label || blockStatusLabel[block.status] || block.status}
+                    </Text>
+                    <Text className={styles.blockDuration}>
+                      {formatBlockDuration(block.durationMinutes)}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
+          </View>
+        </View>
+
+        {selectedBlock && (
+          <View className={styles.blockDetailCard}>
+            <View className={styles.blockDetailHeader}>
+              <Text className={styles.blockDetailTitle}>
+                {blockStatusLabel[selectedBlock.status] || selectedBlock.status} · {selectedBlock.startTime} - {selectedBlock.endTime}
+              </Text>
+              <Text className={styles.blockDetailDuration}>
+                时长 {formatBlockDuration(selectedBlock.durationMinutes)}
+              </Text>
+            </View>
+
+            {(selectedBlock.patientName || selectedBlock.appointment?.patientName) && (
+              <View className={styles.blockDetailRow}>
+                <Text className={styles.blockDetailLabel}>患者</Text>
+                <Text className={styles.blockDetailValue}>
+                  {selectedBlock.patientNumber ? `${selectedBlock.patientNumber}号 · ` : ''}
+                  {selectedBlock.patientName || selectedBlock.appointment?.patientName}
+                </Text>
+              </View>
+            )}
+            {selectedBlock.appointment?.department && (
+              <View className={styles.blockDetailRow}>
+                <Text className={styles.blockDetailLabel}>科室</Text>
+                <Text className={styles.blockDetailValue}>
+                  {selectedBlock.appointment.department}
+                </Text>
+              </View>
+            )}
+            {selectedBlock.appointment?.type && (
+              <View className={styles.blockDetailRow}>
+                <Text className={styles.blockDetailLabel}>类型</Text>
+                <Text className={styles.blockDetailValue}>
+                  {selectedBlock.appointment.type}
+                </Text>
+              </View>
+            )}
+            {selectedBlock.appointment?.doctorName && (
+              <View className={styles.blockDetailRow}>
+                <Text className={styles.blockDetailLabel}>医生</Text>
+                <Text className={styles.blockDetailValue}>
+                  {selectedBlock.appointment.doctorName}
+                </Text>
+              </View>
+            )}
+            {selectedBlock.status === 'available' && (
+              <Text className={styles.blockDetailHint}>此时间段可预约</Text>
+            )}
+            {selectedBlock.status === 'noDoctor' && (
+              <Text className={styles.blockDetailHint}>此时间段该牙椅无在岗医生</Text>
+            )}
+          </View>
+        )}
+      </View>
+
       <View className={styles.scheduleSection}>
         <View className={styles.scheduleHeader}>
           <Text className={styles.sectionTitle}>今日安排 · 日视图</Text>
@@ -379,6 +545,10 @@ const ChairDetailPage: React.FC = () => {
             <View className={styles.legendItem}>
               <View className={`${styles.legendDot} ${styles.legendAvailable}`} />
               <Text className={styles.legendText}>空闲</Text>
+            </View>
+            <View className={styles.legendItem}>
+              <View className={`${styles.legendDot} ${styles.legendNoDoctor}`} />
+              <Text className={styles.legendText}>无医生</Text>
             </View>
           </View>
         </View>

@@ -350,6 +350,188 @@
   line-height: 1.4;
 }
 
+.dayViewItem.noDoctor {
+  opacity: 0.7;
+  background: mix($color-text-disabled, $color-bg-card, 12%);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  margin: 0 (-$spacing-sm);
+}
+
+.dayViewDot.dotNoDoctor {
+  background: $color-text-disabled;
+}
+
+.legendNoDoctor {
+  background: $color-text-disabled;
+}
+
+.overviewSection {
+  background: $color-bg-card;
+  margin: 0 $page-padding $spacing-lg;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.overviewHint {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.periodGroup {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.periodLabel {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.periodText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.periodTime {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.periodEmpty {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  padding: $spacing-md 0;
+}
+
+.blockRow {
+  display: flex;
+  gap: 8rpx;
+  align-items: stretch;
+  min-height: 140rpx;
+}
+
+.timeBlock {
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-xs;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  transition: all $transition-base;
+  cursor: pointer;
+  gap: 4rpx;
+  min-height: 140rpx;
+  flex: 1;
+
+  &.timeBlockActive {
+    transform: translateY(-4rpx);
+    box-shadow: 0 8rpx 20rpx rgba($color-primary, 0.25);
+  }
+
+  &.blockVisiting { background: mix($color-error, $color-white, 90%); border: 2rpx solid $color-error; }
+  &.blockQueued { background: mix($color-warning, $color-white, 90%); border: 2rpx solid $color-warning; }
+  &.blockOccupied { background: mix($color-primary, $color-white, 90%); border: 2rpx solid $color-primary; }
+  &.blockMaintenance { background: mix($color-warning, $color-white, 85%); border: 2rpx dashed $color-warning; }
+  &.blockOffline { background: $color-bg-disabled; border: 2rpx solid $color-text-disabled; opacity: 0.6; }
+  &.blockNoDoctor { background: $color-bg-disabled; border: 2rpx dashed $color-text-disabled; opacity: 0.7; }
+  &.blockAvailable { background: mix($color-success, $color-white, 92%); border: 2rpx solid $color-success; }
+
+  &.timeBlockActive.blockVisiting { box-shadow: 0 8rpx 20rpx rgba($color-error, 0.35); }
+  &.timeBlockActive.blockQueued { box-shadow: 0 8rpx 20rpx rgba($color-warning, 0.35); }
+  &.timeBlockActive.blockOccupied { box-shadow: 0 8rpx 20rpx rgba($color-primary, 0.35); }
+  &.timeBlockActive.blockAvailable { box-shadow: 0 8rpx 20rpx rgba($color-success, 0.35); }
+}
+
+.blockTime {
+  font-size: 20rpx;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.2;
+}
+
+.blockLabel {
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+  font-weight: $font-weight-semibold;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-all;
+}
+
+.blockDuration {
+  font-size: 18rpx;
+  color: $color-text-tertiary;
+  line-height: 1.2;
+}
+
+.blockDetailCard {
+  margin-top: $spacing-lg;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border-left: 6rpx solid $color-primary;
+}
+
+.blockDetailHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.blockDetailTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.blockDetailDuration {
+  font-size: 20rpx;
+  color: $color-text-secondary;
+}
+
+.blockDetailRow {
+  display: flex;
+  gap: $spacing-sm;
+  padding: 6rpx 0;
+}
+
+.blockDetailLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.blockDetailValue {
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.blockDetailHint {
+  margin-top: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $color-success-bg;
+  border-radius: $radius-sm;
+  font-size: 20rpx;
+  color: $color-success;
+  line-height: 1.4;
+}
+
 .actionBtn {
   @include button-reset;
   margin: $spacing-lg $page-padding;
